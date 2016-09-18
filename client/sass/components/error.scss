@@ -1,0 +1,13 @@
+.error {
+	border: 1px dashed #f00;
+	padding: 1em;
+}
+
+.error__title {
+	color: #f00;
+	margin: 0 0 0.5em 0;
+}
+
+.error__message {
+	margin: 1em 0;
+}

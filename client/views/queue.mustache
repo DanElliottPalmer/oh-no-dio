@@ -1,0 +1,20 @@
+{{#queue}}
+	<div class="queue">
+		<h3 class="queue__title">Song queue</h3>
+		<div class="queue__table">
+			<table>
+				{{#items}}
+					<tr>
+						<td>{{ index }}.</td>
+						<td><span class="track__name">{{ data.name }}</span> by <span class="track__artist">{{ data.artist }}</span> <a href="{{ data.spotifyUrl }}" title="View on spotify" target="_blank">(View on spotify)</a></td>
+					</tr>
+				{{/items}}
+				{{^items}}
+					<tr>
+						<td>Nothing.</td>
+					</tr>
+				{{/items}}
+			</table>
+		</div>
+	</div>
+{{/queue}}

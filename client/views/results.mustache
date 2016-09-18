@@ -1,0 +1,21 @@
+{{#results}}
+	<div class="results">
+		<form method="post" action="/queue/add">
+			<h3 class="results__title">Results</h3>
+			<div class="results__table">
+				<table>
+					{{#items}}
+						<tr>
+							<td><button class="results__btn" type="submit" title="Add to queue" name="trackId" value="{{ data.id }}">Add <span class="track__name">{{ data.name }}</span> by <span class="track__artist">{{ data.artist }}</button></a></td>
+						</tr>
+					{{/items}}
+					{{^items}}
+						<tr>
+							<td>Nothing.</td>
+						</tr>
+					{{/items}}
+				</table>
+			</div>
+		</form>
+	</div>
+{{/results}}

@@ -1,0 +1,31 @@
+.results {
+	margin: 2em 0;
+}
+
+.results__title {
+	font-weight: normal;
+	margin: 0 0 0.5em 0;
+}
+
+.results__table {
+	max-height: 300px;
+	overflow: auto;
+}
+
+.results__btn {
+	background-color: transparent;
+	border: none;
+	color: #F24848;
+	font-family: $FONT_FAMILY;
+	font-size: 13px;
+	padding: 0 2px;
+	margin: 0 -2px;
+	text-align: left;
+	text-decoration: underline;
+
+	&:hover {
+		background-color: #F24848;
+		color: #fff;
+		text-decoration: none
+	}
+}

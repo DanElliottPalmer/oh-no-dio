@@ -1,0 +1,15 @@
+.cols {
+	font-size: 0;
+}
+
+.col {
+	display: inline-block;
+	font-size: initial;
+	vertical-align: top;
+}
+.col--queue {
+	width: 40%;
+}
+.col--search {
+	width: 60%;
+}

@@ -1,0 +1,19 @@
+.current-track {
+	border-bottom: 1px solid #000;
+	margin: 20px 0 30px 0;
+	padding-bottom: 30px;
+}
+
+.current-track__title {
+	font-weight: normal;
+	margin: 0;
+}
+
+.current-track__song {
+	margin: 0.2em 0 0 0;
+}
+.current-track__song__name {
+}
+.current-track__song__artist {
+	font-style: italic;
+}
