@@ -122,7 +122,7 @@ function applyListenerEvents(listenerSocket){
 	});
 	listenerSocket.on('track.next', function(){
 		if(musicQueue.length === 0){
-			listenerSocket.emit('track.next', false);
+			listenerSocket.emit('track.next', null);
 		} else {
 			listenerSocket.emit('track.next', musicQueue[0].toJSON());
 		}

@@ -79,7 +79,7 @@ function isTrackFinished(){
 
 function playNextTrack(){
 	return new Promise(function(resolve, reject){
-		if(nextTrack === false){
+		if(nextTrack === null){
 			spotify.pause(function(){
 				nextTrack = false;
 				resolve();
