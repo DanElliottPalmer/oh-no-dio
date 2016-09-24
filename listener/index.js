@@ -2,29 +2,16 @@
 
 const CONFIG = require('./config.json');
 
-const applescript = require('applescript');
+const spotify = require('spotify-node-applescript');
 const io = require('socket.io-client');
 
 let currentTrackId = false;
-let currentTrack = false;
 let tmr = false;
-const script = `
-tell application "Spotify"
-	set playerState to player state as string
-
-	if (playerState = "playing") then
-		set currentArtist to artist of current track as string
-		set currentTrack to name of current track as string
-		set currentId to id of current track as string
-		return {currentId, currentArtist, currentTrack}
-	end if
-
-	return {False}
-end tell
-`;
-const reSpotifyRemoval = /^spotify:track:/;
 let socket = null;
+let spotifyState = null;
+let spotifyTrack = null;
 
+update();
 connect();
 initInterval();
 
@@ -58,37 +45,67 @@ function emitTrackChange(){
 	initInterval();
 }
 
-function getCurrentTrack() {
-	return new Promise(function(resolve){
-		applescript.execString(script, function(err, rtn) {
-			if (err) {
-				console.error(err);
-				currentTrack = false;
-			} else {
-				if(rtn[0] !== currentTrackId){
-					if(rtn[0] === "false"){
-						currentTrackId = currentTrack = rtn[0];
-					} else {
-						const id = rtn[0].replace(reSpotifyRemoval, '');
-						currentTrackId = rtn[0];
-						currentTrack = [id, rtn[1], rtn[2]];
-					}
-					emitTrackChange();
-				}
-			}
-			resolve();
+function initInterval(){
+	if(tmr) return;
+	tmr = setInterval(update, 1000);
+}
+
+function isPlayerHalted(){
+	return (
+		spotifyState === null ||
+		spotifyState.state === 'stopped' ||
+		spotifyState.state === 'paused'
+	);
+}
+
+function sendCurrentTrack(){
+	let data = null;
+	console.log(spotifyState);
+	if(isPlayerHalted()){
+		data = createEvent('track.current', {
+			'track': false
+		});
+	} else {
+		data = createEvent('track.current', {
+			'track': [spotifyTrack.id, spotifyTrack.artist, spotifyTrack.name]
+		});
+	}
+	socket.emit('track.current', data);
+}
+
+function updateSpotifyState(){
+	return new Promise(function(resolve, reject){
+		spotify.getState(function(err, state){
+			if(err) throw err;
+			spotifyState = state;
+			resolve(state);
 		});
 	});
 }
 
-function initInterval(){
-	if(tmr) return;
-	tmr = setInterval(getCurrentTrack, 1000);
+function updateSpotifyTrack(){
+	return new Promise(function(resolve, reject){
+		spotify.getTrack(function(err, track){
+			if(err) throw err;
+			spotifyTrack = track;
+			resolve(track);
+		});
+	});
 }
 
-function sendCurrentTrack(){
-	const data = createEvent('track.current', {
-		'track': currentTrack
-	});
-	socket.emit('track.current', data);
+function update(){
+	updateSpotifyState()
+		.then(updateSpotifyTrack)
+		.then(function(){
+			if(spotifyState.state === 'playing' && spotifyTrack.id !== currentTrackId){
+				currentTrackId = spotifyTrack.id;
+				emitTrackChange();
+			} else if(currentTrackId && isPlayerHalted()){
+				currentTrackId = null;
+				emitTrackChange();
+			}
+		})
+		.catch(function(err){
+			console.error(err);
+		});
 }

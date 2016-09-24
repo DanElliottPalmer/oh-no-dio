@@ -109,7 +109,7 @@ app.post('/queue/add', function(req, res){
 
 function applyListenerEvents(listenerSocket){
 	listenerSocket.on('track.current', function(e){
-		if(typeof e.data.track === "string" && e.data.track === "false"){
+		if(e.data.track === false){
 			currentTrack = false;
 		} else {
 			currentTrack = ModelTrack.fromArray(e.data.track);
