@@ -112,7 +112,7 @@ function sendQueueTrack(){
 }
 
 function sendRemoveNextTrack(){
-	socket.emit('track.remove');
+	socket.emit('track.shift');
 }
 
 function updateSpotifyState(){

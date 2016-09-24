@@ -122,7 +122,7 @@ function applyListenerEvents(listenerSocket){
 			listenerSocket.emit('track.next', musicQueue[0].toJSON());
 		}
 	});
-	listenerSocket.on('track.remove', function(){
+	listenerSocket.on('track.shift', function(){
 		musicQueue.shift();
 	});
 	// listenerSocket.on('disconnect', function(){
