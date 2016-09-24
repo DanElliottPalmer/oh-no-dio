@@ -6,6 +6,7 @@ const spotify = require('spotify-node-applescript');
 const io = require('socket.io-client');
 
 const TRACK_FINISH_THRESHOLD = 5;
+const RE_SPOTIFY_TRACK = /^spotify:track:/g;
 
 let currentTrackId = false;
 let tmr = false;
@@ -129,7 +130,8 @@ function updateSpotifyTrack(){
 		spotify.getTrack(function(err, track){
 			if(err) throw err;
 			spotifyTrack = track;
-			resolve(track);
+			spotifyTrack.id = spotifyTrack.id.replace(RE_SPOTIFY_TRACK, '');
+			resolve(spotifyTrack);
 		});
 	});
 }
