@@ -109,7 +109,11 @@ app.post('/queue/add', function(req, res){
 
 function applyListenerEvents(listenerSocket){
 	listenerSocket.on('track.current', function(e){
-		currentTrack = ModelTrack.fromArray(e.data.track);
+		if(typeof e.data.track === "string" && e.data.track === "false"){
+			currentTrack = false;
+		} else {
+			currentTrack = ModelTrack.fromArray(e.data.track);
+		}
 	});
 	listenerSocket.on('disconnect', function(){
 		console.log('disconnected');

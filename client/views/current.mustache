@@ -4,3 +4,9 @@
 		<h2 class="current-track__song track"><span class="track__name">{{ track.name }}</span> by <span class="track__artist">{{ track.artist }}</span> <a href="{{ track.spotifyUrl }}" title="View on spotify" target="_blank">(View on spotify)</a></h2>
 	</div>
 {{/ current}}
+{{^ current}}
+	<div class="current-track">
+		<h3 class="current-track__title">Current song</h3>
+		<h2 class="current-track__song track">Nothing.</h2>
+	</div>
+{{/current }}
