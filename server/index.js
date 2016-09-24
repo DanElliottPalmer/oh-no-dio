@@ -1,6 +1,6 @@
 'use strict';
 
-const SERVER_PORT = process.env.PORT || 3000;
+const SERVER_PORT = process.env.PORT || 8008;
 const PING_MS = 500;
 const CONFIG = require('./config.json');
 const VIEW_CONTEXTS = require('./contexts');
@@ -19,11 +19,18 @@ const io = socketio(server);
 const spotifyApi = new SpotifyWebApi({});
 
 const musicQueue = [];
+let currentTrack = false;
 const reAcceptableCharacters = /[^\w\s]/g;
+let listenerSocket = null;
 
 server.listen(SERVER_PORT, () => {
     console.log(`Server listening on port ${SERVER_PORT}`);
 });
+io.of(`/${CONFIG.SECRET_CODE}`)
+	.on('connection', function(socket){
+		listenerSocket = socket;
+		applyListenerEvents(socket);
+	});
 
 app.engine('mustache', mustacheExpress());
 
@@ -100,8 +107,20 @@ app.post('/queue/add', function(req, res){
 	});
 });
 
+function applyListenerEvents(listenerSocket){
+	listenerSocket.on('track.current', function(e){
+		currentTrack = ModelTrack.fromArray(e.data.track);
+	});
+	listenerSocket.on('disconnect', function(){
+		console.log('disconnected');
+	});
+}
+
 function getDefaultContext(){
 	const context = VIEW_CONTEXTS.renderIndex();
 	context['queue'] = VIEW_CONTEXTS.renderQueue(musicQueue);
+	if(currentTrack !== false) {
+		context['current'] = VIEW_CONTEXTS.renderCurrent(currentTrack);
+	}
 	return context;
 }

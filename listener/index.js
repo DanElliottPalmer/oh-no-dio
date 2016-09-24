@@ -1,6 +1,9 @@
 'use strict';
 
+const CONFIG = require('./config.json');
+
 const applescript = require('applescript');
+const io = require('socket.io-client');
 
 let currentTrackId = false;
 let currentTrack = false;
@@ -20,14 +23,40 @@ tell application "Spotify"
 end tell
 `;
 const reSpotifyRemoval = /^spotify:track:/;
+let socket = null;
 
+connect();
 initInterval();
+
+function applySocketListeners(socket){
+	socket.on('connect', function(){
+		console.log('connect');
+		sendCurrentTrack();
+	});
+	socket.on('disconnect', function(){
+		console.log('disconnect');
+	});
+	socket.on('track.current', sendCurrentTrack);
+}
+
+function connect(){
+	socket = io.connect(`${CONFIG.HOST}/${CONFIG.SECRET_CODE}`);
+	applySocketListeners(socket);
+}
+
+function createEvent(type, data){
+	return {
+		data,
+		type
+	};
+}
 
 function emitTrackChange(){
 	clearInterval(tmr);
 	tmr = false;
 	console.log("track changed");
 	console.log(currentTrack);
+	sendCurrentTrack();
 	initInterval();
 }
 
@@ -57,4 +86,11 @@ function getCurrentTrack() {
 function initInterval(){
 	if(tmr) return;
 	tmr = setInterval(getCurrentTrack, 1000);
+}
+
+function sendCurrentTrack(){
+	const data = createEvent('track.current', {
+		'track': currentTrack
+	});
+	socket.emit('track.current', data);
 }

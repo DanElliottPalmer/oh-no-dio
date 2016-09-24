@@ -1,5 +1,11 @@
 'use strict';
 
+function renderCurrent(track){
+	return {
+		"track": track.toJSON()
+	};
+}
+
 function renderError(msg){
 	return {
 		"message": msg
@@ -8,6 +14,7 @@ function renderError(msg){
 
 function renderIndex(){
 	return {
+		"current": false,
 		"error": false,
 		"queue": false,
 		"results": false
@@ -37,6 +44,7 @@ function renderResults(tracks){
 }
 
 module.exports = {
+	"renderCurrent": renderCurrent,
 	"renderError": renderError,
 	"renderIndex": renderIndex,
 	"renderQueue": renderQueue,

@@ -29,6 +29,11 @@ Track.prototype = {
 
 };
 
+Track.fromArray = function(arr){
+	const model = new Track(arr[0], arr[2], arr[1]);
+	return model;
+};
+
 Track.fromSpotify = function(item){
 	const model = new Track(
 		item.id, item.name, item.artists.map( a => a.name ));
