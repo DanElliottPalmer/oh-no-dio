@@ -54,8 +54,6 @@ function createEvent(type, data){
 function emitTrackChange(){
 	clearInterval(tmr);
 	tmr = false;
-	console.log("track changed");
-	console.log(currentTrack);
 	sendCurrentTrack();
 	initInterval();
 }
