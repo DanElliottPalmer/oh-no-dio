@@ -12,6 +12,11 @@ const bodyParser = require('body-parser');
 const SpotifyWebApi = require('spotify-web-api-node');
 const ModelTrack = require('./Track');
 const mustacheExpress = require('mustache-express');
+const csrf = require('csurf');
+const cookieParser = require('cookie-parser');
+
+const csrfProtection = csrf({ "cookie": true });
+const parseForm = bodyParser.urlencoded({ "extended": false });
 
 const app = express();
 const server = http.createServer(app);
@@ -38,14 +43,15 @@ app.set('view engine', 'mustache');
 app.set('views', `${__dirname}/../client/views`);
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ "extended": true }));
+app.use(cookieParser());
+// app.use(bodyParser.urlencoded({ "extended": true }));
 app.use(express.static(`${__dirname}/../client/public`));
 
-app.get('/', function(req, res){
-	res.render('index', getDefaultContext());
+app.get('/', csrfProtection, function(req, res){
+	res.render('index', getDefaultContext(req.csrfToken()));
 });
 
-app.post('/search', function(req, res){
+app.post('/search', parseForm, csrfProtection, function(req, res){
 
 	// Strip anything out that is not letters or numbers
 	const trackName = req.body['track-name'].replace(
@@ -64,7 +70,7 @@ app.post('/search', function(req, res){
 	.then(function(data){
 		const tracks = data.body.tracks.items.map(
 			ModelTrack.fromSpotify);
-		const context = getDefaultContext();
+		const context = getDefaultContext(req.csrfToken());
 		context['results'] = VIEW_CONTEXTS.renderResults(tracks);
 		res.render('index', context);
 	}, function(err){
@@ -75,7 +81,7 @@ app.post('/search', function(req, res){
 
 });
 
-app.post('/queue/add', function(req, res){
+app.post('/queue/add', parseForm, csrfProtection, function(req, res){
 
 	// Strip out any characters that are nono
 	const spotifyId = req.body['trackId'].replace(reAcceptableCharacters, '');
@@ -96,7 +102,7 @@ app.post('/queue/add', function(req, res){
 		res.redirect('/');
 	}, function(err){
 		console.log('err', err);
-		const context = getDefaultContext();
+		const context = getDefaultContext(req.csrfToken());
 		context['error'] = VIEW_CONTEXTS.renderError(
 			'Could not find track in spotify.');
 		return res.render('index', context);
@@ -130,8 +136,8 @@ function applyListenerEvents(listenerSocket){
 	// });
 }
 
-function getDefaultContext(){
-	const context = VIEW_CONTEXTS.renderIndex();
+function getDefaultContext(csrfToken){
+	const context = VIEW_CONTEXTS.renderIndex(csrfToken);
 	context['queue'] = VIEW_CONTEXTS.renderQueue(musicQueue);
 	if(currentTrack !== false) {
 		context['current'] = VIEW_CONTEXTS.renderCurrent(currentTrack);
