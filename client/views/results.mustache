@@ -1,6 +1,7 @@
 {{#results}}
 	<div class="results">
 		<form method="post" action="/queue/add">
+			<input type="hidden" name="_csrf" value="{{ csrfToken }}" />
 			<h3 class="results__title">Results</h3>
 			<div class="results__table">
 				<table>

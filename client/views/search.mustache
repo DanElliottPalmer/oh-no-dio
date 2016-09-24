@@ -1,6 +1,7 @@
 <div class="search">
 	<h3 class="search__title">Search</h3>
 	<form name="song-search" method="post" action="/search">
+		<input type="hidden" name="_csrf" value="{{ csrfToken }}" />
 		<label>
 			<span>Search for track:</span>
 			<input type="text" name="track-name" class="search__text" placeholder="Song name" />

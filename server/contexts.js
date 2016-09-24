@@ -12,8 +12,9 @@ function renderError(msg){
 	};
 }
 
-function renderIndex(){
+function renderIndex(csrfToken){
 	return {
+		"csrfToken": csrfToken,
 		"current": false,
 		"error": false,
 		"queue": false,

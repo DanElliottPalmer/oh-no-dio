@@ -12,6 +12,8 @@ const bodyParser = require('body-parser');
 const SpotifyWebApi = require('spotify-web-api-node');
 const ModelTrack = require('./Track');
 const mustacheExpress = require('mustache-express');
+const csrf = require('csurf');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const server = http.createServer(app);
@@ -39,10 +41,13 @@ app.set('views', `${__dirname}/../client/views`);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ "extended": true }));
+app.use(cookieParser());
+app.use(csrf({ "cookie": true }));
 app.use(express.static(`${__dirname}/../client/public`));
+app.use(handleCSRFTokenError);
 
 app.get('/', function(req, res){
-	res.render('index', getDefaultContext());
+	res.render('index', getDefaultContext(req.csrfToken()));
 });
 
 app.post('/search', function(req, res){
@@ -64,7 +69,7 @@ app.post('/search', function(req, res){
 	.then(function(data){
 		const tracks = data.body.tracks.items.map(
 			ModelTrack.fromSpotify);
-		const context = getDefaultContext();
+		const context = getDefaultContext(req.csrfToken());
 		context['results'] = VIEW_CONTEXTS.renderResults(tracks);
 		res.render('index', context);
 	}, function(err){
@@ -96,7 +101,7 @@ app.post('/queue/add', function(req, res){
 		res.redirect('/');
 	}, function(err){
 		console.log('err', err);
-		const context = getDefaultContext();
+		const context = getDefaultContext(req.csrfToken());
 		context['error'] = VIEW_CONTEXTS.renderError(
 			'Could not find track in spotify.');
 		return res.render('index', context);
@@ -130,11 +135,17 @@ function applyListenerEvents(listenerSocket){
 	// });
 }
 
-function getDefaultContext(){
-	const context = VIEW_CONTEXTS.renderIndex();
+function getDefaultContext(csrfToken){
+	const context = VIEW_CONTEXTS.renderIndex(csrfToken);
 	context['queue'] = VIEW_CONTEXTS.renderQueue(musicQueue);
 	if(currentTrack !== false) {
 		context['current'] = VIEW_CONTEXTS.renderCurrent(currentTrack);
 	}
 	return context;
+}
+
+function handleCSRFTokenError(err, req, res, next){
+	if (err.code !== 'EBADCSRFTOKEN') return next(err);
+	res.status(403);
+	res.send('403: gtfo');
 }
