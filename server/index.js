@@ -15,9 +15,6 @@ const mustacheExpress = require('mustache-express');
 const csrf = require('csurf');
 const cookieParser = require('cookie-parser');
 
-const csrfProtection = csrf({ "cookie": true });
-const parseForm = bodyParser.urlencoded({ "extended": false });
-
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
@@ -43,15 +40,17 @@ app.set('view engine', 'mustache');
 app.set('views', `${__dirname}/../client/views`);
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ "extended": true }));
 app.use(cookieParser());
-// app.use(bodyParser.urlencoded({ "extended": true }));
+app.use(csrf({ "cookie": true }));
 app.use(express.static(`${__dirname}/../client/public`));
+app.use(handleCSRFTokenError);
 
-app.get('/', csrfProtection, function(req, res){
+app.get('/', function(req, res){
 	res.render('index', getDefaultContext(req.csrfToken()));
 });
 
-app.post('/search', parseForm, csrfProtection, function(req, res){
+app.post('/search', function(req, res){
 
 	// Strip anything out that is not letters or numbers
 	const trackName = req.body['track-name'].replace(
@@ -81,7 +80,7 @@ app.post('/search', parseForm, csrfProtection, function(req, res){
 
 });
 
-app.post('/queue/add', parseForm, csrfProtection, function(req, res){
+app.post('/queue/add', function(req, res){
 
 	// Strip out any characters that are nono
 	const spotifyId = req.body['trackId'].replace(reAcceptableCharacters, '');
@@ -143,4 +142,10 @@ function getDefaultContext(csrfToken){
 		context['current'] = VIEW_CONTEXTS.renderCurrent(currentTrack);
 	}
 	return context;
+}
+
+function handleCSRFTokenError(err, req, res, next){
+	if (err.code !== 'EBADCSRFTOKEN') return next(err);
+	res.status(403);
+	res.send('403: gtfo');
 }
