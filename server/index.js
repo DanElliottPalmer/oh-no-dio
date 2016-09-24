@@ -115,9 +115,19 @@ function applyListenerEvents(listenerSocket){
 			currentTrack = ModelTrack.fromArray(e.data.track);
 		}
 	});
-	listenerSocket.on('disconnect', function(){
-		console.log('disconnected');
+	listenerSocket.on('track.next', function(){
+		if(musicQueue.length === 0){
+			listenerSocket.emit('track.next', false);
+		} else {
+			listenerSocket.emit('track.next', musicQueue[0].toJSON());
+		}
 	});
+	listenerSocket.on('track.remove', function(){
+		musicQueue.shift();
+	});
+	// listenerSocket.on('disconnect', function(){
+	// 	console.log('disconnected');
+	// });
 }
 
 function getDefaultContext(){
