@@ -40,6 +40,10 @@ class ListenerSocket {
         this._sockets = [];
     }
 
+    emit(...args){
+        this._server.broadcast(...args);
+    }
+
     listen(server){
         this._server = server.of(`/${CONFIG.SECRET_CODE}/listener`)
             .on('connection', this._onClientConnect.bind(this));
