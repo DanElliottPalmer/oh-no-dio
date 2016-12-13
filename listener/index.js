@@ -1,35 +1,29 @@
 'use strict';
 
 const CONFIG = require('./config.json');
+const SpotifyListener = require('./SpotifyListener');
 
 const spotify = require('spotify-node-applescript');
 const io = require('socket.io-client');
 
 const TRACK_FINISH_THRESHOLD = 5;
-const RE_SPOTIFY_TRACK = /^spotify:track:/g;
 
-let currentTrackId = false;
+let sl = null;
 let tmr = false;
 let socket = null;
-let spotifyState = null;
-let spotifyTrack = null;
 let nextTrack = false;
 
-update();
+
 connect();
-initInterval();
+initListener();
+
 
 function applySocketListeners(socket){
 	socket.on('connect', function(){
 		sendCurrentTrack();
 	});
-	// socket.on('disconnect', function(){
-	// 	console.log('disconnect');
-	// });
 	socket.on('track.current', sendCurrentTrack);
-	socket.on('track.next', function(e){
-		nextTrack = e;
-	});
+	socket.on('track.next', function(e){ nextTrack = e; });
 }
 
 function connect(){
@@ -38,43 +32,37 @@ function connect(){
 }
 
 function createEvent(type, data){
-	return {
-		data,
-		type
-	};
+	return { data, type };
 }
 
-function emitTrackChange(){
-	clearInterval(tmr);
-	tmr = false;
-	sendCurrentTrack();
-	initInterval();
-}
-
-function initInterval(){
-	if(tmr) return;
-	tmr = setInterval(update, 1000);
-}
-
-function isPlayerHalted(){
-	return (
-		spotifyState === null ||
-		spotifyState.state === 'stopped' ||
-		spotifyState.state === 'paused'
-	);
+function initListener(){
+	sl = new SpotifyListener();
+	sl.on('trackChange', sendCurrentTrack);
+	sl.on('stateChange', sendCurrentTrack);
+	sl.on('positionChange', function onPositionChange(){
+		if(isTrackNearlyFinished() && nextTrack === false){
+			sendQueueTrack();
+		} else if(isTrackFinished()){
+			playNextTrack()
+				.then(sendRemoveNextTrack);
+		}
+	});
+	tmr = setInterval(function(){
+		if(sl.isSyncing) return;
+		sl.sync().catch(function(err){
+			console.error(err);
+		});
+	}, 500);
 }
 
 function isTrackNearlyFinished(){
-	if(spotifyState === null) return false;
-	return (
-		spotifyState.position >=
-		(spotifyTrack.duration/1000 - TRACK_FINISH_THRESHOLD)
-	);
+	if(sl.state === null || sl.track === null) return false;
+	return sl.position >= (sl.track.duration - TRACK_FINISH_THRESHOLD);
 }
 
 function isTrackFinished(){
-	if(spotifyState === null) return false;
-	return spotifyState.position >= (spotifyTrack.duration/1000 - 2);
+	if(sl.state === null || sl.track === null) return false;
+	return sl.position >= (sl.track.duration - 1);
 }
 
 function playNextTrack(){
@@ -95,13 +83,13 @@ function playNextTrack(){
 
 function sendCurrentTrack(){
 	let data = null;
-	if(isPlayerHalted()){
+	if(sl.isHalted || sl.track == null){
 		data = createEvent('track.current', {
 			'track': false
 		});
 	} else {
 		data = createEvent('track.current', {
-			'track': [spotifyTrack.id, spotifyTrack.artist, spotifyTrack.name]
+			'track': [sl.track.id, sl.track.artist, sl.track.name]
 		});
 	}
 	socket.emit('track.current', data);
@@ -113,51 +101,4 @@ function sendQueueTrack(){
 
 function sendRemoveNextTrack(){
 	socket.emit('track.shift');
-}
-
-function updateSpotifyState(){
-	return new Promise(function(resolve, reject){
-		spotify.getState(function(err, state){
-			if(err) throw err;
-			spotifyState = state;
-			resolve(state);
-		});
-	});
-}
-
-function updateSpotifyTrack(){
-	return new Promise(function(resolve, reject){
-		spotify.getTrack(function(err, track){
-			if(err) throw err;
-			spotifyTrack = track;
-			spotifyTrack.id = spotifyTrack.id.replace(RE_SPOTIFY_TRACK, '');
-			resolve(spotifyTrack);
-		});
-	});
-}
-
-function update(){
-	updateSpotifyState()
-		.then(updateSpotifyTrack)
-		.then(function(){
-			// Track updates
-			if(spotifyState.state === 'playing' && spotifyTrack.id !== currentTrackId){
-				currentTrackId = spotifyTrack.id;
-				emitTrackChange();
-			} else if(currentTrackId && isPlayerHalted()){
-				currentTrackId = null;
-				emitTrackChange();
-			}
-
-			// Queue updates
-			if(isTrackNearlyFinished() && nextTrack === false){
-				sendQueueTrack();
-			} else if(isTrackFinished()){
-				playNextTrack()
-					.then(sendRemoveNextTrack);
-			}
-		})
-		.catch(function(err){
-			console.error(err);
-		});
 }
