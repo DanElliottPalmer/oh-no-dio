@@ -45,7 +45,7 @@ class ListenerSocket {
     }
 
     listen(server){
-        this._server = server.of(`/${CONFIG.SECRET_CODE}/listener`)
+        this._server = server.of(`/${CONFIG.LISTENER_SECRET_CODE}/listener`)
             .on('connection', this._onClientConnect.bind(this));
     }
 
