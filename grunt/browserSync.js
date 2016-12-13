@@ -1,6 +1,6 @@
 'use strict';
 
-const PROXY_URL = 'localhost:3000'
+const PROXY_URL = 'localhost:8008'
 
 module.exports = {
 
