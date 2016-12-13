@@ -117,12 +117,4 @@ class SpotifyListener extends EventEmitter2 {
 
 }
 
-function stateEqual(state1, state2){
-    for(const key in state1){
-        if(!state1.hasOwnProperty(key)) continue;
-        if(state1[key] !== state2[key]) return false;
-    }
-    return true;
-}
-
 module.exports = SpotifyListener;
