@@ -25,7 +25,7 @@ function applySocketListeners(socket){
 }
 
 function connect(){
-	socket = io.connect(`${CONFIG.HOST}/${CONFIG.SECRET_CODE}`);
+	socket = io.connect(`${CONFIG.HOST}/${CONFIG.SECRET_CODE}/listener`);
 	applySocketListeners(socket);
 }
 
