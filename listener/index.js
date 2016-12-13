@@ -6,8 +6,6 @@ const SpotifyListener = require('./SpotifyListener');
 const spotify = require('spotify-node-applescript');
 const io = require('socket.io-client');
 
-const TRACK_FINISH_THRESHOLD = 5;
-
 let sl = null;
 let tmr = false;
 let socket = null;
@@ -57,12 +55,12 @@ function initListener(){
 
 function isTrackNearlyFinished(){
 	if(sl.state === null || sl.track === null) return false;
-	return sl.position >= (sl.track.duration - TRACK_FINISH_THRESHOLD);
+	return sl.position >= (sl.track.duration - CONFIG.THRESHOLD_TRACK_NEARLY_FINISH);
 }
 
 function isTrackFinished(){
 	if(sl.state === null || sl.track === null) return false;
-	return sl.position >= (sl.track.duration - 1);
+	return sl.position >= (sl.track.duration - CONFIG.THRESHOLD_TRACK_FINISH);
 }
 
 function playNextTrack(){

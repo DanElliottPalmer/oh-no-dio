@@ -1,4 +1,6 @@
 {
 	"HOST": "http://localhost:8008",
-	"SECRET_CODE": "butts"
+	"SECRET_CODE": "butts",
+    "THRESHOLD_TRACK_FINISH": 1,
+    "THRESHOLD_TRACK_NEARLY_FINISH": 5
 }
