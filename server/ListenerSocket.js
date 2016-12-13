@@ -17,9 +17,9 @@ class ListenerSocket {
         });
         socket.on('track.next', function(){
             if(STATE.get('queue').length === 0){
-                listenerSocket.emit('track.next', null);
+                socket.emit('track.next', null);
             } else {
-                listenerSocket.emit('track.next', STATE.get('queue')[0].toJSON());
+                socket.emit('track.next', STATE.get('queue')[0].toJSON());
             }
         });
         socket.on('track.shift', function(){
