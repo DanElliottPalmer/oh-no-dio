@@ -59,6 +59,10 @@ class SpotifyListener extends EventEmitter2 {
             this._isSyncing = false;
             this.emit('sync');
             return Promise.resolve();
+        }, (err) => {
+            this._isSyncing = false;
+            this.emit('error', err);
+            return Promise.reject();
         });
     }
 
@@ -67,7 +71,7 @@ class SpotifyListener extends EventEmitter2 {
             spotify.getState((err, state) => {
                 if(err){
                     this.emit('error.state', err);
-                    throw err;
+                    reject(err);
                 } else {
 
                     if(this.state === null || this.state !== state.state){
@@ -94,7 +98,7 @@ class SpotifyListener extends EventEmitter2 {
             spotify.getTrack((err, track) => {
                 if(err){
                     this.emit('error.track', err);
-                    throw err;
+                    reject(err);
                 } else {
 
                     const currentTrack = SpotifyTrack.fromSpotify(track);

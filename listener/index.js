@@ -47,9 +47,7 @@ function initListener(){
 	});
 	tmr = setInterval(function(){
 		if(sl.isSyncing) return;
-		sl.sync().catch(function(err){
-			console.error(err);
-		});
+		sl.sync();
 	}, 500);
 }
 
