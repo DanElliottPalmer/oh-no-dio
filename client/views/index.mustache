@@ -3,12 +3,7 @@
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="stylesheet" type="text/css" href="/css/page.css" />
-		{{# current}}
-			<title>🎵 Currently playing: {{ track.name }} by {{ track.artist }} 🎵</title>
-		{{/ current}}
-		{{^ current}}
-			<title>Nothing.</title>
-		{{/current }}
+		{{> title}}
 	</head>
 	<body>
 
